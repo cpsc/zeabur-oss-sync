@@ -1,0 +1,39 @@
+name: Sync Forks from Upstream
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Sync Upstream Changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync Zeabur OSS Forks
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          REPOS=(
+            zeabur
+            identity
+            catalog
+            kubesolo
+            builder
+            design-system
+            website
+          )
+
+          echo "Starting fork sync check..."
+          for repo in "${REPOS[@]}"; do
+            echo "=================================================="
+            echo "Checking cpsc/$repo against upstream zeabur-oss/$repo..."
+            echo "=================================================="
+            
+            RES=$(gh api --method POST "repos/cpsc/$repo/merge-upstream" -f branch="main" 2>&1) || {
+              echo "Failed or conflict on cpsc/$repo: $RES"
+              continue
+            }
+            echo "$RES"
+          done
+          echo "All repositories checked."
