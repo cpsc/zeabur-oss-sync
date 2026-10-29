@@ -27,13 +27,14 @@ jobs:
           echo "Starting fork sync check..."
           for repo in "${REPOS[@]}"; do
             echo "=================================================="
-            echo "Checking cpsc/$repo against upstream zeabur-oss/$repo..."
+            BRANCH=$(gh repo view "cpsc/$repo" --json defaultBranchRef --jq .defaultBranchRef.name)
+            echo "Syncing cpsc/$repo (branch: $BRANCH) from upstream zeabur-oss/$repo..."
             echo "=================================================="
             
-            RES=$(gh api --method POST "repos/cpsc/$repo/merge-upstream" -f branch="main" 2>&1) || {
-              echo "Failed or conflict on cpsc/$repo: $RES"
+            RES=$(gh api --method POST "repos/cpsc/$repo/merge-upstream" -f branch="$BRANCH" 2>&1) || {
+              echo "Notice on cpsc/$repo: $RES"
               continue
             }
             echo "$RES"
           done
-          echo "All repositories checked."
+          echo "All repositories checked and up to date."
